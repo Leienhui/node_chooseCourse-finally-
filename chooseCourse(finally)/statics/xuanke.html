@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>选课界面</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+</head>
+
+<body>
+    <!-- 导航条开始 -->
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="mr-auto">
+            <a class="navbar-brand" href="#">选课系统</a>
+        </div>
+        <div style="color: white;">
+            欢迎你，<span id="nameSpan" style="color: yellow;"></span>！<a href=""
+                style="color: white; text-decoration: underline;">当前已选课程<span id="yixuanSpan"
+                    style="color: yellow;"></span>门</a>，限选2门。
+            <a href="/logout" class="btn btn-danger">退出登陆</a>
+        </div>
+    </nav>
+    <!-- 导航条结束 -->
+
+    <div class="container" id="container" style="margin-top: 30px;">
+        <section>
+            <div class="form-check form-check-inline">
+                <p>
+                    筛选年级：
+                    <input class="form-check-input" name="nianji" type="radio" value="1" id="n1">
+                    <label for="n1">
+                        大一
+                    </label>
+                    <input class="form-check-input" name="nianji" type="radio" value="2" id="n2">
+                    <label for="n2">
+                        大二
+                    </label>
+                    <input class="form-check-input" name="nianji" type="radio" value="3" id="n3">
+                    <label for="n3">
+                        大三
+                    </label>
+                    <input class="form-check-input" name="nianji" type="radio" value="4" id="n4">
+                    <label for="n4">
+                        大四
+                    </label>
+                </p>
+            </div>
+        </section>
+
+        <section>
+            <div class="form-check form-check-inline">
+                <p>
+                    筛选星期：
+                    <input class="form-check-input" name="xingqiji" type="checkbox" value="2" id="x2">
+                    <label for="x2">
+                        周二
+                    </label>
+                    <input class="form-check-input" name="xingqiji" type="checkbox" value="3" id="x3">
+                    <label for="x3">
+                        周三
+                    </label>
+                    <input class="form-check-input" name="xingqiji" type="checkbox" value="4" id="x4">
+                    <label for="x4">
+                        周四
+                    </label>
+                </p>
+            </div>
+        </section>
+        <section>
+            <div class="form-check form-check-inline">
+                <p>
+                    筛选类型：
+                    <input class="form-check-input" name="leixing" type="checkbox" value="外语" id="waiyu">
+                    <label for="waiyu">
+                        外语
+                    </label>
+                    <input class="form-check-input" name="leixing" type="checkbox" value="人文" id="renwen">
+                    <label for="renwen">
+                        人文
+                    </label>
+                    <input class="form-check-input" name="leixing" type="checkbox" value="音乐" id="yinyue">
+                    <label for="yinyue">
+                        音乐
+                    </label>
+                </p>
+            </div>
+        </section>
+
+        <!-- 表格 -->
+        <div id="tablebox"></div>
+    </div>
+
+    <script type="template">
+        <table>
+            {{#arr}}
+                <tr>
+                    <td>{{item.name}}</td>
+                    <td>{{item.xingqi}}</td>
+                    <td>{{item.remsjixoamzjo}}</td>
+                    <td>{{item.riqi}}</td>
+                </tr>
+            {{/arr}}
+        </table>
+    </script>
+
+    <script src="https://cdn.bootcdn.net/ajax/libs/redux/4.0.5/redux.min.js"></script>
+    <script src="js/MyTable.js"></script>
+    <script>
+        var initState = {
+            dataArr: [],
+            filter_nianji: '',
+            filter_xingqi: [],
+            filter_leixing: []
+        };
+        // 数据的reduer
+        function reduer(state, action) {
+            if (state == undefined) {
+                return {
+                    dataArr: [],
+                    filter_nianji: '',
+                    filter_xingqi: [],
+                    filter_leixing: []
+                };
+            }
+            if (action.type == 'SHEZHIXINSHUJU') {
+                // 把全部的数据备份一下，备份到initState中
+                initState.dataArr = action.dataArr;
+                // 设置新数据
+                return Object.assign(state, { dataArr: action.dataArr });
+            } else if (action.type == 'CHANGEFILTER') {
+                // 进行筛选了
+                // 筛选自己的数据
+                var self = this;
+
+                initState[action.k] = action.v;
+
+                // 遍历所有的数据，进行筛选
+                var resultArr = initState.dataArr.filter(function (n) {
+                    if (initState.filter_nianji && !n.nianjixianzhi.includes(initState.filter_nianji)) {
+                        return false;
+                    }
+
+                    if (initState.filter_xingqi.length != 0 && !initState.filter_xingqi.includes(n.xingqiji)) {
+                        return false;
+                    }
+
+                    if (initState.filter_leixing.length != 0 && !initState.filter_leixing.includes(n.leixing)) {
+                        return false;
+                    }
+
+                    return true;
+                });
+
+                console.log(resultArr);
+                // 改变过滤器
+                return Object.assign(state, {
+                    dataArr: resultArr,
+                    [action.k]: action.v
+                });
+            }
+        }
+        // 创建store
+        var store = Redux.createStore(reduer);
+
+        // 创建表格的实例
+        var mytable = new MyTable({
+            // 表格出现在哪里
+            'el': '#tablebox',
+            // 表格的store
+            'store': store,
+            // 表格的列
+            'colsName': [
+                {
+                    'e': 'id',
+                    'c': 'id'
+                },
+                {
+                    'e': 'mingzi',
+                    'c': '名字'
+                },
+                {
+                    'e': 'jianjie',
+                    'c': '简介'
+                },
+                {
+                    'e': 'laoshi',
+                    'c': '老师'
+                },
+                {
+                    'e': 'leixing',
+                    'c': '类型'
+                },
+                {
+                    'e': 'nianjixianzhi',
+                    'c': '年级限制'
+                },
+                {
+                    'e': 'xingqiji',
+                    'c': '星期几',
+                    'render': function (rowData) {
+                        switch (rowData.xingqiji) {
+                            case '2':
+                                return '周二';
+                            case '3':
+                                return '周三';
+                            case '4':
+                                return '周四';
+                        }
+                    }
+                },
+                {
+                    'e': 'renshuxianzhi',
+                    'c': '人数限制'
+                },
+                {
+                    'c': '选课',
+                    // 渲染按钮的时候做个判断，如果不能选单独加disabled属性
+                    // 我们必须在这里写成函数
+                    'render': function (rowData) {
+                        return '<button data-id="' + rowData.id + '" class="btn btn-success" data-bmbtn="bm">报名</button>';
+                    }
+                }
+            ]
+        });
+
+        // 让数据订阅视图，或者说表格订阅数据。
+        // 注意，bind是绑定上下文的意思，就是说，要把这个函数的上下文绑定给mytable
+        store.subscribe(mytable.render.bind(mytable));
+
+
+        // Ajax请求课程清单
+        function loadKe() {
+            // Ajax
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                // Ajax回来了
+                if (xhr.readyState == 4) {
+                    var dataArr = JSON.parse(xhr.responseText);
+                    // 发布命令
+                    store.dispatch({ type: 'SHEZHIXINSHUJU', dataArr: dataArr });
+                    // 还用不用调用render？？？？不用了，因为已经订阅视图了，数据变化了，视图自动变化
+                }
+            }
+            xhr.open('GET', '/ke', true);
+            xhr.send();
+        }
+        loadKe();
+
+        // 报名按钮的事件委托
+        document.onclick = function (e) {
+            if (e.target.nodeName.toLowerCase() == 'button' && e.target.getAttribute('data-bmbtn') == 'bm') {
+                var id = e.target.getAttribute('data-id');
+
+                // 发出Ajax
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState == 4) {
+                        if (xhr.responseText == '-1') {
+                            alert('报名失败！课程没有剩余人数了！');
+                        } else if (xhr.responseText == '-2') {
+                            alert('报名失败！年级不符合！');
+                        } else if (xhr.responseText == '-3') {
+                            alert('报名失败！星期冲突！');
+                        } else if (xhr.responseText == '-4') {
+                            alert('报名失败！你已经报了2个课程了！如要改课，请先退一个！');
+                        } else if (xhr.responseText == '1') {
+                            window.location.reload();
+                            alert('报名成功！');
+                        }
+                    }
+                }
+                xhr.open('GET', '/baoming?id=' + id, true);
+                xhr.send();
+            }
+        }
+
+
+        // Ajax请求登陆用户信息
+        function loadUser() {
+            // Ajax
+            var xhr = new XMLHttpRequest();
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState == 4) {
+                    // 把字符串变为对象
+                    var o = JSON.parse(xhr.responseText);
+
+                    document.getElementById('nameSpan').innerText = o.name;
+
+                    // 计算他选了几门课
+                    var count = 0;
+                    if (o.xuanke1 != null) count++;
+                    if (o.xuanke2 != null) count++;
+
+                    document.getElementById('yixuanSpan').innerText = count;
+                }
+            }
+            xhr.open('GET', '/user', true);
+            xhr.send();
+        }
+        loadUser();
+
+        // 选项按钮的事件委托
+        var container = document.querySelector('#container');
+        container.onclick = function (e) {
+            if (e.target.nodeName.toLowerCase() == 'input') {
+                if (e.target.name == 'nianji') {
+                    // 用户点击了年级的单选按钮，相当于对store发出命令
+                    // k表示改什么；v表示改成什么
+                    store.dispatch({ type: 'CHANGEFILTER', k: 'filter_nianji', v: e.target.value });
+                } else if (e.target.name == 'xingqiji') {
+                    // 寻找所有打钩的xingqi的对话框
+                    var arr = [];
+                    // 这里先找到所有星期几的框
+                    var inputs = document.querySelectorAll('input[name="xingqiji"]');
+                    // 遍历所有星期几的框，看看谁被打钩了
+                    for (var i = 0; i < inputs.length; i++) {
+                        if (inputs[i].checked) {
+                            arr.push(inputs[i].value);
+                        }
+                    }
+
+                    store.dispatch({ type: 'CHANGEFILTER', k: 'filter_xingqi', v: arr });
+                } else if (e.target.name == 'leixing') {
+                    // 寻找所有打钩的leixing的对话框
+                    var arr = [];
+                    // 这里先找到所有leixing的框
+                    var inputs = document.querySelectorAll('input[name="leixing"]');
+                    // 遍历所有leixing的框，看看谁被打钩了
+                    for (var i = 0; i < inputs.length; i++) {
+                        if (inputs[i].checked) {
+                            arr.push(inputs[i].value);
+                        }
+                    }
+
+                    store.dispatch({ type: 'CHANGEFILTER', k: 'filter_leixing', v: arr });
+                }
+            }
+        };
+    </script>
+</body>
+
+</html>
